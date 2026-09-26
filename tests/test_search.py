@@ -4,7 +4,7 @@ from datetime import date
 from app.config import apply_chat, config_from_body, default_config, next_stay
 from app.jev import parse_fit
 from app.rank import Listing, drop_reason, rank
-from app.search import jev_ra_cmd, portal_list, run_search
+from app.search import jev_ra_cmd, playwright_chrome, portal_list, run_search
 
 
 TODAY = date(2026, 9, 26)
@@ -106,7 +106,22 @@ class JevTests(unittest.TestCase):
         self.assertIn("--profile", cmd)
         self.assertIn("apafin-booking", cmd)
         self.assertTrue(any(part.startswith("place=Detligen") for part in cmd))
+        self.assertIn("--json", cmd)
         self.assertNotIn("pfadiheim", {name for name, _ in portal_list(cfg)})
+
+    def test_playwright_chrome_is_the_newest_binary(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            older = home / ".cache/ms-playwright/chromium-1/chrome-linux64"
+            newer = home / ".cache/ms-playwright/chromium-2/chrome-linux64"
+            older.mkdir(parents=True)
+            newer.mkdir(parents=True)
+            (older / "chrome").write_text("", encoding="utf-8")
+            (newer / "chrome").write_text("", encoding="utf-8")
+            self.assertEqual(playwright_chrome(home), str(newer / "chrome"))
 
 
 if __name__ == "__main__":

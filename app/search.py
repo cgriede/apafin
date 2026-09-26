@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -55,7 +56,27 @@ def jev_ra_cmd(source: str, url: str, cfg: SearchConfig, profile: str) -> list[s
         "8",
         "--profile",
         profile,
+        "--json",
     ]
+
+
+def playwright_chrome(home: Path | None = None) -> str | None:
+    """Playwright's Chromium, the browser mini-proj runs already have."""
+    root = Path(home or Path.home()) / ".cache" / "ms-playwright"
+    if not root.is_dir():
+        return None
+    found = sorted(path for path in root.glob("chromium-*/chrome-linux64/chrome") if path.is_file())
+    return str(found[-1]) if found else None
+
+
+def browser_env() -> dict[str, str]:
+    env = os.environ.copy()
+    if env.get("JEV_RA_CHROME"):
+        return env
+    chrome = playwright_chrome()
+    if chrome:
+        env["JEV_RA_CHROME"] = chrome
+    return env
 
 
 def listing_from_json(raw: dict) -> Listing:
@@ -93,6 +114,28 @@ def apply_jev(listings: list[Listing], cfg: SearchConfig, log: list[str]) -> Non
         )
 
 
+def _run_jev(cmd: list[str], log: list[str], source: str) -> list[Listing]:
+    env = browser_env()
+    chrome = env.get("JEV_RA_CHROME") or ""
+    if not chrome:
+        log.append(f"{source}: no Chrome binary. Set JEV_RA_CHROME.")
+        return []
+    log.append(f"{source}: jev-ra profile {cmd[cmd.index('--profile') + 1]} chrome {chrome}")
+    try:
+        done = subprocess.run(cmd, capture_output=True, text=True, timeout=180, check=False, env=env)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        log.append(f"{source}: {exc}")
+        return []
+    log.append(f"{source}: exit {done.returncode}")
+    text = (done.stdout or "") + "\n" + (done.stderr or "")
+    found = _listings_in_output(text, source)
+    if not found:
+        tail = " ".join(text.split())[:240]
+        if tail:
+            log.append(f"{source} output: {tail}")
+    return found
+
+
 def collect_live(cfg: SearchConfig) -> tuple[list[Listing], list[str]]:
     log: list[str] = []
     listings: list[Listing] = []
@@ -100,23 +143,9 @@ def collect_live(cfg: SearchConfig) -> tuple[list[Listing], list[str]]:
         log.append("uvx is not installed, so the portal browser session did not start.")
         return listings, log
     for source, url in portal_list(cfg):
-        profile = f"apafin-{source}"
-        cmd = jev_ra_cmd(source, url, cfg, profile)
-        log.append(f"{source}: jev-ra profile {profile}")
-        try:
-            done = subprocess.run(cmd, capture_output=True, text=True, timeout=180, check=False)
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            log.append(f"{source}: {exc}")
-            continue
-        log.append(f"{source}: exit {done.returncode}")
-        text = (done.stdout or "") + "\n" + (done.stderr or "")
-        listings.extend(_listings_in_output(text, source))
-        if not listings:
-            tail = " ".join(text.split())[:240]
-            if tail:
-                log.append(f"{source} output: {tail}")
-    for url in cfg.loaded_apartment_urls:
-        log.append(f"loaded url waiting for a browser extract: {url}")
+        listings.extend(_run_jev(jev_ra_cmd(source, url, cfg, f"apafin-{source}"), log, source))
+    for index, url in enumerate(cfg.loaded_apartment_urls, start=1):
+        listings.extend(_run_jev(jev_ra_cmd("loaded", url, cfg, f"apafin-loaded-{index}"), log, "loaded"))
     return listings, log
 
 

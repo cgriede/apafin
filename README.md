@@ -21,10 +21,12 @@ Sample scores that card without opening a portal. Search runs `uvx jev-ra` when 
 ## Run
 
 ```bash
-conda activate LRF
+conda activate mini-proj
 python -m unittest discover -s tests
 python -m app.server
 ```
+
+The server sets `JEV_RA_CHROME` to Playwright's Chromium under `~/.cache/ms-playwright` when that variable is empty.
 
 Open http://127.0.0.1:8080. Ctrl+Enter searches. Ctrl+Shift+Enter scores the sample.
 
