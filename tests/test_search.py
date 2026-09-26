@@ -42,7 +42,8 @@ class StayTests(unittest.TestCase):
         self.assertEqual(cfg.budget_chf, 1000)
         self.assertEqual(cfg.must_have, ["kitchen", "towels", "wifi", "bathroom"])
         self.assertEqual(cfg.max_ride_min, 30)
-        self.assertEqual(cfg.loaded_apartment_urls, [])
+        self.assertEqual(len(cfg.loaded_apartment_urls), 1)
+        self.assertIn("769166993968066796", cfg.loaded_apartment_urls[0])
 
 
 class RankTests(unittest.TestCase):

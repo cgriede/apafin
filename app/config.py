@@ -8,11 +8,19 @@ from datetime import date, timedelta
 
 MUST_HAVE = ("kitchen", "towels", "wifi", "bathroom")
 CONFIDENCE_MIN = 0.95
+INITIAL_APARTMENT_URL = (
+    "https://www.airbnb.ch/rooms/769166993968066796"
+    "?adults=2&search_mode=regular_search&check_in=2026-10-15&check_out=2026-10-20"
+    "&children=0&infants=0&pets=0"
+    "&source_impression_id=p3_1790418655_P3Nz3L22MOwHBlZc"
+    "&previous_page_section_name=1001"
+    "&federated_search_id=7a74be44-5070-4e3f-9ed8-ca872f2b8cde"
+)
 
 
 @dataclass
 class SearchConfig:
-    loaded_apartment_urls: list[str] = field(default_factory=list)
+    loaded_apartment_urls: list[str] = field(default_factory=lambda: [INITIAL_APARTMENT_URL])
     working_places: list[str] = field(default_factory=lambda: ["Detligen", "Frieswil"])
     men: int = 3
     women: int = 2

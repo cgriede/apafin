@@ -133,6 +133,9 @@
       }
     });
     fetch("/api/config").then((r) => r.json()).then((cfg) => {
+      if (cfg.loaded_apartment_urls && cfg.loaded_apartment_urls.length) {
+        $("urls").value = cfg.loaded_apartment_urls.join("\n");
+      }
       $("status").textContent = "Next stay " + cfg.check_in + " afternoon to " + cfg.check_out + " morning. Budget " + cfg.budget_chf + " CHF.";
     });
   </script>

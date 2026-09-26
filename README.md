@@ -8,7 +8,7 @@ The page ranks. TypeSafe Jev only answers keep or drop when a listing page does 
 
 The form opens with this card:
 
-- loaded apartment URLs: none
+- loaded apartment URL: the Airbnb room `769166993968066796`
 - working place: Detligen + Frieswil
 - team: 3M, 2F
 - budget: 1000 CHF
