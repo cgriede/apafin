@@ -1,0 +1,10 @@
+services:
+  apafin:
+    build: .
+    image: apafin:0.1.0
+    ports:
+      - "8080:8080"
+    environment:
+      TYPESAFE_API_KEY: ${TYPESAFE_API_KEY:-}
+      APAFIN_PORT: 8080
+    restart: unless-stopped

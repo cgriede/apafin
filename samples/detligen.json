@@ -1,0 +1,88 @@
+{
+  "listings": [
+    {
+      "name": "Haus am Bach",
+      "place": "Radelfingen",
+      "source": "fewo",
+      "url": "https://www.fewo.ch/example/haus-am-bach",
+      "price_chf": 840,
+      "drive_min": {"Detligen": 12, "Frieswil": 14},
+      "bedrooms": 3,
+      "beds": 6,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    },
+    {
+      "name": "Wohnung Seedorf",
+      "place": "Seedorf",
+      "source": "booking",
+      "url": "https://www.booking.com/example/seedorf",
+      "price_chf": 910,
+      "drive_min": {"Detligen": 18, "Frieswil": 16},
+      "bedrooms": 3,
+      "beds": 5,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    },
+    {
+      "name": "Stöckli Murzelen",
+      "place": "Murzelen",
+      "source": "airbnb",
+      "url": "https://www.airbnb.com/rooms/example-murzelen",
+      "price_chf": 970,
+      "drive_min": {"Detligen": 20, "Frieswil": 21},
+      "bedrooms": 4,
+      "beds": 6,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    },
+    {
+      "name": "Pfadiheim nicht im Sommer",
+      "place": "Aarberg",
+      "source": "pfadiheim",
+      "url": "https://www.pfadiheim.ch/example/aarberg",
+      "price_chf": 700,
+      "drive_min": {"Detligen": 22, "Frieswil": 24},
+      "bedrooms": 4,
+      "beds": 10,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    },
+    {
+      "name": "Studio ohne Zimmer",
+      "place": "Detligen",
+      "source": "airbnb",
+      "url": "https://www.airbnb.com/rooms/example-studio",
+      "price_chf": 600,
+      "drive_min": {"Detligen": 4, "Frieswil": 8},
+      "bedrooms": 1,
+      "beds": 4,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    },
+    {
+      "name": "Weit weg",
+      "place": "Thun",
+      "source": "booking",
+      "url": "https://www.booking.com/example/thun",
+      "price_chf": 800,
+      "drive_min": {"Detligen": 28, "Frieswil": 36},
+      "bedrooms": 3,
+      "beds": 6,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    },
+    {
+      "name": "Teuer",
+      "place": "Frieswil",
+      "source": "airbnb",
+      "url": "https://www.airbnb.com/rooms/example-teuer",
+      "price_chf": 1400,
+      "drive_min": {"Detligen": 10, "Frieswil": 6},
+      "bedrooms": 3,
+      "beds": 6,
+      "amenities": ["kitchen", "towels", "wifi", "bathroom"],
+      "stay_ok": true
+    }
+  ]
+}

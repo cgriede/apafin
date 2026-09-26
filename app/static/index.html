@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apafin</title>
+  <style>
+    :root { color-scheme: light; font-family: "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f4f1ea; color: #1c1915; }
+    header { padding: 1.25rem 1.5rem 0; }
+    h1 { font-size: 1.4rem; margin: 0; }
+    header p { margin: 0.25rem 0 0; color: #5c564c; }
+    main { display: grid; grid-template-columns: 22rem 1fr; gap: 1.5rem; padding: 1rem 1.5rem 2rem; }
+    form, .results { background: #fff; border: 1px solid #e2dcd0; border-radius: 8px; padding: 1rem; }
+    label { display: block; font-size: 0.85rem; margin: 0.7rem 0 0.2rem; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; border: 1px solid #cfc6b8; border-radius: 4px; }
+    .row { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
+    button { padding: 0.45rem 0.7rem; border-radius: 4px; border: 1px solid #1c1915; background: #1c1915; color: #fff; cursor: pointer; }
+    button.secondary { background: #fff; color: #1c1915; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #8a5a12; outline-offset: 2px; }
+    .card { border-top: 1px solid #e2dcd0; padding: 0.9rem 0; }
+    .card h2 { font-size: 1.05rem; margin: 0; }
+    .price { font-size: 1.15rem; margin: 0.3rem 0; }
+    .muted { color: #5c564c; }
+    .log { font-family: ui-monospace, monospace; font-size: 0.82rem; white-space: pre-wrap; }
+    .error { color: #8d1d1d; }
+    @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Apafin</h1>
+    <p>Wesser und Partner. Three apartments for one team.</p>
+  </header>
+  <main>
+    <form id="card">
+      <label for="urls">Loaded apartment URLs</label>
+      <textarea id="urls" rows="2" title="Listing links, one per line. Leave empty to skip saved apartments."></textarea>
+      <label for="place">Working place</label>
+      <input id="place" value="Detligen + Frieswil" title="Work places, joined with +">
+      <label for="team">Team</label>
+      <input id="team" value="3M, 2F" title="Men and women, for example 3M, 2F">
+      <label for="budget">Budget CHF, Monday afternoon to Friday morning</label>
+      <input id="budget" type="number" value="1000" min="0" title="Total budget in CHF for the four nights">
+      <label for="ride">Max ride, minutes</label>
+      <input id="ride" type="number" value="30" min="1" title="Maximum typical weekday drive to every work place">
+      <label for="must">Must have</label>
+      <input id="must" value="kitchen, towels, wifi, bathroom">
+      <label for="chat">Note</label>
+      <input id="chat" placeholder="budget 1200 or also check Pfadiheime" title="Optional change. Ctrl+Enter searches.">
+      <div class="row">
+        <button type="submit" id="search" title="Search portals (Ctrl+Enter)">Search</button>
+        <button type="button" class="secondary" id="sample" title="Score the saved Detligen sample (Ctrl+Shift+Enter)">Sample</button>
+      </div>
+    </form>
+    <section class="results" aria-live="polite">
+      <p id="status" class="muted">Confirm the card, then search.</p>
+      <div id="log" class="log"></div>
+      <div id="cards"></div>
+    </section>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    function payload(mode) {
+      const urls = $("urls").value.split(/\s+/).map((s) => s.trim()).filter(Boolean);
+      return {
+        mode,
+        loaded_apartment_urls: urls,
+        working_place: $("place").value,
+        team: $("team").value,
+        budget_chf: Number($("budget").value),
+        max_ride_min: Number($("ride").value),
+        must_have: $("must").value.split(",").map((s) => s.trim()).filter(Boolean),
+        chat: $("chat").value,
+      };
+    }
+    function render(data) {
+      if (data.error) {
+        $("status").textContent = data.error;
+        $("status").className = "error";
+        return;
+      }
+      $("status").className = "muted";
+      const cfg = data.config;
+      $("status").textContent = cfg.check_in + " afternoon to " + cfg.check_out + " morning. Budget " + cfg.budget_chf + " CHF. " + cfg.team + ".";
+      if (data.chat_budget) $("budget").value = data.config.budget_chf;
+      $("budget").value = cfg.budget_chf;
+      $("log").textContent = (data.log || []).concat((data.dropped || []).map((d) => d.name + ": " + d.reason)).join("\n");
+      $("cards").replaceChildren();
+      if (!data.cards.length) {
+        const p = document.createElement("p");
+        p.textContent = "No listing passed.";
+        $("cards").appendChild(p);
+        return;
+      }
+      data.cards.forEach((card, index) => {
+        const node = document.createElement("article");
+        node.className = "card";
+        const drives = Object.entries(card.drive_min).map(([place, min]) => place + " " + min + " min").join(", ");
+        node.innerHTML = "<h2></h2><p class='price'></p><p class='muted drives'></p><p class='rooms'></p><p class='must'></p><p class='why'></p><p><a target='_blank' rel='noopener noreferrer'></a></p>";
+        node.querySelector("h2").textContent = (index + 1) + ". " + card.name + " · " + card.place + " · " + card.source;
+        node.querySelector(".price").textContent = card.price_chf + " CHF of " + card.budget_chf + " CHF, " + card.left_chf + " CHF left";
+        node.querySelector(".drives").textContent = drives;
+        node.querySelector(".rooms").textContent = card.room_sentence;
+        node.querySelector(".must").textContent = card.must_have.join(", ");
+        node.querySelector(".why").textContent = card.why;
+        const link = node.querySelector("a");
+        link.href = card.url;
+        link.textContent = card.url;
+        $("cards").appendChild(node);
+      });
+    }
+    async function go(mode) {
+      $("status").textContent = mode === "sample" ? "Scoring the sample…" : "Searching portals…";
+      $("status").className = "muted";
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload(mode)),
+      });
+      render(await response.json());
+    }
+    $("card").addEventListener("submit", (event) => { event.preventDefault(); go("live"); });
+    $("sample").addEventListener("click", () => go("sample"));
+    document.addEventListener("keydown", (event) => {
+      if (event.ctrlKey && event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        go("live");
+      }
+      if (event.ctrlKey && event.shiftKey && event.key === "Enter") {
+        event.preventDefault();
+        go("sample");
+      }
+    });
+    fetch("/api/config").then((r) => r.json()).then((cfg) => {
+      $("status").textContent = "Next stay " + cfg.check_in + " afternoon to " + cfg.check_out + " morning. Budget " + cfg.budget_chf + " CHF.";
+    });
+  </script>
+</body>
+</html>
